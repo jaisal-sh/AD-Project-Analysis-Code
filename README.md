@@ -15,17 +15,17 @@ Data comes from the AD Knowledge Portal / Synapse (M2OVE-AD Consortium and relat
 
 ## Scripts
 
-figures1_2_pipeline_circos_heatmap.R
+### figures1_2_pipeline_circos_heatmap.R
 Cross-cohort multi-omic analysis. Loads and cleans each cohort's proteomics plus a second omics layer, maps specimens to individuals and averages replicates, drops features correlated with sex (|r| >= 0.6), and picks top-variance features per layer. Cross-omics correlation uses cis-pair Pearson for MSBB (paired protein/transcript) and a full Spearman grid with FDR for AMP-AD/ROSMAP. Produces the Figure 1 heatmaps and protein-overlap Venn diagram, and the Figure 2 circos plots, FDR summary table, and |r| violin plot.
 
 Needs diablo3_model.RData (a pre-fit ROSMAP DIABLO object) and org.Hs.eg.db for the MSBB gene ID mapping.
 
-figure3_vascular_risk_pipeline.R
+### figure3_vascular_risk_pipeline.R
 Vascular risk factors vs AD-related outcomes in DiCAD, Emory_Vascular, and MC-CAA: forest plot of effects across cohorts, DiCAD amyloid PET by diabetes status, Emory hippocampal volume by hypertension, MC-CAA Aβ42 vs CAA severity, and MC-CAA transcriptomic PCA by Braak stage.
 
 Expects each cohort's cleaned data frames already in the session (dicad_final, emory_check, mccaa_demographics, mccaa_biospecimen, mccaa_biochemical_final, mccaa_pca_data) from earlier cleaning steps.
 
-figure4_HDL_LDL_pipeline.R
+### figure4_HDL_LDL_pipeline.R
 Lipid biology across clinical and tissue levels: DiCAD HDL/LDL by diabetes status adjusted for statin use, brain and plasma lipidomics volcano plots by Braak stage, a brain-plasma concordance scatter, and LPE 18:1 boxplots by tissue and Braak stage.
 
 The lipid volcano screens (panels B-C) don't use a multiple-comparison correction, see the manuscript caption for why.
@@ -62,7 +62,7 @@ spear_ampad\$r and spear_rosmap\$r come out as matrices, not flat vectors, and n
 
 Raw data is not redistributed in this repository. Access requires registration with the AD Knowledge Portal (https://adknowledgeportal.synapse.org/) and, for restricted cohorts, an approved data use agreement.
 
-## Acknowledgement
+## Acknowledgements
 
 The data available in the AD Knowledge Portal would not be possible without the participation of research volunteers and the contribution of data by collaborating researchers.
 

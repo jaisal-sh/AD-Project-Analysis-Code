@@ -18,8 +18,6 @@ Data comes from the AD Knowledge Portal / Synapse (M2OVE-AD Consortium and relat
 ### figures1_2_pipeline_circos_heatmap.R
 Cross-cohort multi-omic analysis. Loads and cleans each cohort's proteomics plus a second omics layer, maps specimens to individuals and averages replicates, drops features correlated with sex (|r| >= 0.6), and picks top-variance features per layer. Cross-omics correlation uses cis-pair Pearson for MSBB (paired protein/transcript) and a full Spearman grid with FDR for AMP-AD/ROSMAP. Produces the Figure 1 heatmaps and protein-overlap Venn diagram, and the Figure 2 circos plots, FDR summary table, and |r| violin plot.
 
-Needs diablo3_model.RData (a pre-fit ROSMAP DIABLO object) and org.Hs.eg.db for the MSBB gene ID mapping.
-
 ### figure3_vascular_risk_pipeline.R
 Vascular risk factors vs AD-related outcomes in DiCAD, Emory_Vascular, and MC-CAA: forest plot of effects across cohorts, DiCAD amyloid PET by diabetes status, Emory hippocampal volume by hypertension, MC-CAA Aβ42 vs CAA severity, and MC-CAA transcriptomic PCA by Braak stage.
 

@@ -6,14 +6,16 @@ R scripts for the figures in a narrative review on multi-omic and vascular contr
 
 ## Cohorts
 
+Planned mapping: Fig 1 lipidomics_braak_adjusted.R; Fig 2 metabolon_lipid_braak.R and cross_platform_lipid_classes.R; Fig 3 vascular_risk_figure.R; Fig 4 (context, may go to supplement) figures1_2_pipeline_circos_heatmap.R.
+
 Figures 1-2 (as of now) use ROSMAP, MSBB, and AMP-AD:
 - ROSMAP: proteomics + metabolomics
 - MSBB: proteomics + gene expression + ATAC-seq
 - AMP-AD: proteomics + metabolomics
 
-Figures 3-4 (as of now) use DiCAD, Emory_Vascular, MC-CAA, and ROSMAP_Lipidomics_Emory. These cohorts don't overlap with ROSMAP/MSBB/AMP-AD above, no shared subjects.
+Figures 3-4 (as of now) use DiCAD, Emory_Vascular, MC-CAA, and ROSMAP_Lipidomics_Emory. DiCAD, Emory_Vascular and MC-CAA don’t overlap with ROSMAP/MSBB/AMP-AD above, no shared subjects. ROSMAP_Lipidomics_Emory is ROSMAP, so it can overlap with the ROSMAP cohort in Figures 1-2 (not counted).
 
-The Metabolon lipid analysis uses ROSMAP brain Metabolon HD4 metabolomics (brain tissue per the Brain514 assay file name, region not confirmed from the study documentation). It is ROSMAP, so participants probably overlap with ROSMAP_Lipidomics_Emory and with the ROSMAP cohort in Figures 1-2. The overlap hasn't been counted.
+The Metabolon lipid analysis uses ROSMAP brain Metabolon HD4 metabolomics (dorsolateral prefrontal cortex, 514 donors per the AD Knowledge Portal 18.7 data release notes; the cleaned file has 512 people and 509 have Braak stage, age and sex). It is ROSMAP, so participants overlap with ROSMAP_Lipidomics_Emory: 262 of the 384 lipidomics participants (135 High, 127 Low Braak) are among the 509 analysed Metabolon participants. Overlap with the ROSMAP cohort in Figures 1-2 hasn’t been counted. Its metabolites appear to come from the same Metabolon HD4 data.
 
 Data comes from the AD Knowledge Portal / Synapse (M2OVE-AD Consortium and related studies). Raw data isn't included here, see Data access below.
 
@@ -44,11 +46,11 @@ Brain (DLPFC) and plasma lipidomics vs Braak stage (High = Braak >= 4), reading 
 Tests whether lipid features carry stronger Braak associations than other metabolites in ROSMAP brain Metabolon HD4 data (High = Braak >= 4, adjusted for age and sex, BH FDR). Joins features to the Metabolon data dictionary on CHEM_ID for SUPER_PATHWAY and SUB_PATHWAY. Includes a run-batch sensitivity model, a Braak coding sensitivity check (continuous, >= 3, >= 4, >= 5), and an exploratory, post hoc test of each lipid sub-pathway against the other lipids. The class-level comparison (lipid vs non-lipid) is null. Sub-pathway results are exploratory, and the hexosylceramide direction depends on the Braak cutoff. Standalone.
 
 ### cross_platform_lipid_classes.R
-Compares median Braak effects by lipid class between the lipidomics results above and ROSMAP brain Metabolon HD4 (9 matched classes). Reads results/rosmap_lipidomics_braak_adjusted.csv and results/inputs/metabolon_braak_effects.csv, a copy of the feature-level table written by metabolon_lipid_braak.R. The class mapping is inexact (see comments in the script), and the Spearman correlation across classes is descriptive only. Run lipidomics_braak_adjusted.R and metabolon_lipid_braak.R first.
+Compares median Braak effects by lipid class between the lipidomics results above and ROSMAP brain (DLPFC) Metabolon HD4 (9 matched classes). Reads results/rosmap_lipidomics_braak_adjusted.csv and the feature-level table written by metabolon_lipid_braak.R (path set in the CONFIG block), and saves a copy in results/inputs/. Same direction in 5 of 9 classes, Spearman rho 0.43 across classes (p = 0.25, descriptive only). The class mapping is inexact. Metabolon plasmalogens are restricted to GPE species to match lipidomics plasmenylPE (5 species after the 80% filter), Metabolon LPE is the lysophospholipid sub-pathway restricted to GPE, the lysoplasmalogens are a separate sub-pathway and are in no class, and lipidomics plasmanylPE has no Metabolon match. Run lipidomics_braak_adjusted.R and metabolon_lipid_braak.R first.
 
 ## Requirements
 
-R 4.x with:
+R R 4.5.1 with:
 
 ```r
 install.packages(c("dplyr", "tidyverse", "broom", "ggplot2", "ggrepel",
@@ -62,7 +64,7 @@ BiocManager::install(c("circlize", "ComplexHeatmap", "org.Hs.eg.db", "Annotation
 
 Update the path variables at the top of each script (base_msbb, base_ampad, base_rosmap, data_dir, lipid_dir, out_dir) for your local data. Figures 3-4 need the cleaned cohort data frames already loaded, those come from upstream cleaning scripts not included here. Run a script and it writes PNG panels to out_dir. The three Figure 1 heatmaps render as separate PNGs and get assembled into one figure outside R (Canva/Figma works fine).
 
-The four newer scripts (vascular_risk_figure.R, lipidomics_braak_adjusted.R, metabolon_lipid_braak.R, cross_platform_lipid_classes.R) are standalone. Set the paths in the CONFIG block at the top of each, and they write figures to figures/ and tables to results/. 
+The four newer scripts (vascular_risk_figure.R, lipidomics_braak_adjusted.R, metabolon_lipid_braak.R, cross_platform_lipid_classes.R) are standalone. Set the paths in the CONFIG block at the top of each, and they write figures to figures/ and tables to results/ holds the summary tables and sessionInfo files from the four newer scripts. They contain no person-level data, and figures are not committed.
 
 ## Known data quirks
 
@@ -97,6 +99,14 @@ Plasma lipidomics is negative ionization only, brain is positive and negative co
 Metabolon HD4 columns are bare CHEM_IDs. Join to the data dictionary on CHEM_ID to get SUPER_PATHWAY and SUB_PATHWAY. The file also has BATCH_209/305/400/402, SAMPLE_TYPE and MATRIX_DESIGNATION columns that are not metabolites and must be excluded. Each BATCH column belongs to one platform (LIB_ID in the dictionary).
 
 The 80% completeness filter on Metabolon features keeps more lipids (69%) than non-lipids (55%), so class comparisons are not perfectly even.
+
+Brain lipidomics has 92 species columns. Seven are deuterated internal standards (ChE, LPC, PC, PE, PS, SM and TG), leaving 85 species, all above the 80% completeness filter. Plasma has 117 species and no standards.
+
+Age at death recorded as “90+” is set to 90 in the lipidomics and Metabolon scripts. Postmortem interval is missing for only 2 people and is not in the models.
+
+The Metabolon dictionary lists 11 plasmalogens (6 GPE, 5 GPC) but only 9 reach the effects table. One GPC species (P-16:0/20:4) is 53% non-missing and fails the 80% filter, and one GPE species (P-18:0/18:2) is entirely missing. The 80% filter is computed in the 509 analysed people.
+
+MSBB diagnosis groups in Figures 1-2 are CDR-based (0 = Control, 0.5 = MCI, 3 or more = AD), so people with CDR 1 or 2 are excluded. The Figure 1 top-100 protein sets for ROSMAP and AMP-AD are made unique with make.unique, so names ending in .1 or .2 cannot match across cohorts and overlap may be undercounted.
 
 ## Data access
 

@@ -40,6 +40,7 @@ cat("metabolon features:", nrow(metab), "| lipidomics brain species:", nrow(lipd
 # metabolon lysophospholipids include LPC etc., so keep only the GPE (LPE) species to match lipidomics LPE
 metab <- metab %>% mutate(group = case_when(
   sub_pathway == "Lysophospholipid" & grepl("GPE \\(", chem_name) ~ "Lysophospholipid (GPE only)",
+  sub_pathway == "Plasmalogen"      & grepl("GPE \\(", chem_name) ~ "Plasmalogen (GPE only)",
   TRUE ~ sub_pathway))
 
 # ---- class mapping (lipidomics class <-> metabolon group) ----
@@ -53,7 +54,7 @@ cls_map <- tribble(
   "Cer",             "Ceramides",                       "Ceramides",
   "Hex1Cer",         "Hexosylceramides (HCER)",         "Hexosylceramides",
   "Hex2Cer",         "Lactosylceramides (LCER)",        "Lactosylceramides",
-  "plasmenylPE",     "Plasmalogen",                     "Plasmalogens",
+  "plasmenylPE",     "Plasmalogen (GPE only)",          "Plasmalogens (PE)",
   "LPE",             "Lysophospholipid (GPE only)",     "LPE",
   "DG",              "Diacylglycerol",                  "DG"
 )
@@ -87,6 +88,7 @@ both <- both %>% filter(label %in% keep_cls)
 # check 1: what got matched and how many species per class per platform
 print(both %>% select(label, platform, n, n_fdr, med) %>% arrange(label, platform), n = Inf)
 cat("classes compared:", length(keep_cls), "\n")
+stopifnot("plasmalogen GPE fix is active" = "Plasmalogens (PE)" %in% both$label)
 stopifnot(length(keep_cls) >= 5)   # fewer than this and the comparison is not worth plotting
 
 wide <- both %>% select(label, platform, med) %>%
@@ -113,9 +115,9 @@ pA <- ggplot(long, aes(med, label, colour = platform)) +
   scale_colour_manual(values = pcols, name = NULL) +
   scale_size_continuous(range = c(2, 5), name = "species in class") +
   labs(x = "median standardised effect (High vs Low Braak)", y = NULL,
-       caption = "bars = 95% bootstrap interval over species (descriptive); classes with >= 3 species on both platforms") +
+       caption = "bars = 95% bootstrap interval over species (descriptive)\nclasses with >= 3 species on both platforms") +
   theme_minimal(base_size = 11) +
-  theme(legend.position = "bottom", legend.box = "vertical")
+  theme(legend.position = "bottom", legend.box = "vertical", plot.caption = element_text(hjust = 0))
 
 pB <- ggplot(wide, aes(lipidomics, metabolon, label = label, colour = same_sign)) +
   geom_hline(yintercept = 0, colour = "grey70") +

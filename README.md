@@ -23,14 +23,19 @@ Data comes from the AD Knowledge Portal / Synapse (M2OVE-AD Consortium and relat
 Cross-cohort multi-omic analysis. Loads and cleans each cohort's proteomics plus a second omics layer, maps specimens to individuals and averages replicates, drops features correlated with sex (|r| >= 0.6), and picks top-variance features per layer. Cross-omics correlation uses cis-pair Pearson for MSBB (paired protein/transcript) and a full Spearman grid with FDR for AMP-AD/ROSMAP. Produces the Figure 1 heatmaps and protein-overlap Venn diagram, and the Figure 2 circos plots, FDR summary table, and |r| violin plot.
 
 ### figure3_vascular_risk_pipeline.R
-Vascular risk factors vs AD-related outcomes in DiCAD, Emory_Vascular, and MC-CAA: forest plot of effects across cohorts, DiCAD amyloid PET by diabetes status, Emory hippocampal volume by hypertension, MC-CAA Aβ42 vs CAA severity, and MC-CAA transcriptomic PCA by Braak stage.
+**Superseded by vascular_risk_figure.R below.** Vascular risk factors vs AD-related outcomes in DiCAD, Emory_Vascular, and MC-CAA: forest plot of effects across cohorts, DiCAD amyloid PET by diabetes status, Emory hippocampal volume by hypertension, MC-CAA Aβ42 vs CAA severity, and MC-CAA transcriptomic PCA by Braak stage.
 
 Expects each cohort's cleaned data frames already in the session (dicad_final, emory_check, mccaa_demographics, mccaa_biospecimen, mccaa_biochemical_final, mccaa_pca_data) from earlier cleaning steps.
 
-### figure4_HDL_LDL_pipeline.R
-Lipid biology across clinical and tissue levels: DiCAD HDL/LDL by diabetes status adjusted for statin use, brain and plasma lipidomics volcano plots by Braak stage, a brain-plasma concordance scatter, and LPE 18:1 boxplots by tissue and Braak stage.
+Kept only for the MC-CAA transcriptomic PCA by Braak stage (panel E), which is not rebuilt in the new script and goes to the supplement. The other panels used DiCAD repeat visits as independent rows (323 rows for 199 people), had no covariate adjustment, and included one extreme MC-CAA Ab42 value without reporting the estimate with and without it.
 
-Panel A (HDL/LDL by diabetes) is still used. Panels B-E are superseded by lipidomics_braak_adjusted.R below. The plasma input has 662 rows but only 430 people (technical replicates) and this script treated the rows as independent, so its plasma p-values are too small. It also used no multiple-comparison correction, while the new analysis uses BH FDR.
+### figure4_HDL_LDL_pipeline.R
+**Superseded.** Lipid biology across clinical and tissue levels: DiCAD HDL/LDL by diabetes status adjusted for statin use, brain and plasma lipidomics volcano plots by Braak stage, a brain-plasma concordance scatter, and LPE 18:1 boxplots by tissue and Braak stage.
+
+Panel A (HDL/LDL by diabetes) is rebuilt per person in vascular_risk_figure.R (the old version used 354 lab rows for 200 people and counted any statin-like string, including nystatin). Panels B-E are superseded by lipidomics_braak_adjusted.R below. The plasma input has 662 rows but only 430 people (technical replicates) and this script treated the rows as independent, so its plasma p-values are too small. It also used no multiple-comparison correction, while the new analysis uses BH FDR.
+
+### vascular_risk_figure.R
+Standalone replacement for figure3 and for panel A of figure4. Reads processed/M2OVE.xlsx plus the raw DiCAD and MC-CAA CSVs, collapses everything to one row per person, and fits standardised effects (outcome in SD units per unit of exposure) with and without covariates: diabetes vs amyloid PET (DiCAD), hypertension vs hippocampal volume (Emory_Vascular), and CAA severity vs Ab42 TX fraction (MC-CAA). Covariates are age, sex and APOE e4 where available (plus intracranial volume for Emory). Any covariate that is mostly missing is dropped and the covariates actually used are saved with the estimates. For MC-CAA, all participants is the primary estimate, and the estimate excluding the single largest Ab42 value (individual 759), a log2 version and a Spearman test are saved alongside. Also fits DiCAD HDL and LDL by diabetes status (unadjusted, statin-adjusted, and statin + age + sex adjusted), with the statin flag excluding nystatin. Standalone, nothing needs to be loaded in the session first.
 
 ### lipidomics_braak_adjusted.R
 Brain (DLPFC) and plasma lipidomics vs Braak stage (High = Braak >= 4), reading the rosmap_lipid_brain, rosmap_lipid_plasma and rosmap_lipid_clinical sheets of processed/M2OVE.xlsx. Averages plasma technical replicates to one row per person, drops deuterated internal standards, keeps species with at least 80% non-missing values, then fits each species on Braak group + age + sex with BH FDR. Also runs a batch-adjusted sensitivity model and summarises results by lipid class. Produces brain and plasma volcano plots and a class summary panel, plus direction and batch-by-group tables. Standalone, nothing needs to be loaded in the session first.
@@ -57,11 +62,21 @@ BiocManager::install(c("circlize", "ComplexHeatmap", "org.Hs.eg.db", "Annotation
 
 Update the path variables at the top of each script (base_msbb, base_ampad, base_rosmap, data_dir, lipid_dir, out_dir) for your local data. Figures 3-4 need the cleaned cohort data frames already loaded, those come from upstream cleaning scripts not included here. Run a script and it writes PNG panels to out_dir. The three Figure 1 heatmaps render as separate PNGs and get assembled into one figure outside R (Canva/Figma works fine).
 
-The three newer scripts (lipidomics_braak_adjusted.R, metabolon_lipid_braak.R, cross_platform_lipid_classes.R) are standalone. Set the paths in the CONFIG block at the top of each, and they write figures to figures/ and tables to results/. 
+The four newer scripts (vascular_risk_figure.R, lipidomics_braak_adjusted.R, metabolon_lipid_braak.R, cross_platform_lipid_classes.R) are standalone. Set the paths in the CONFIG block at the top of each, and they write figures to figures/ and tables to results/. 
 
 ## Known data quirks
 
 MC-CAA's biochemical data has to be bridged through the biospecimen table (filtered to the ELISA assay) before joining on specimenID. Joining straight to individualID drops or mismatches rows silently.
+
+MC-CAA's Ab42 column names contain literal newline characters, and the TX fraction is in pg/mg protein (the FA fraction is in ug/mg). Pick the column with grep("^Ab42_TX", names(...)) instead of retyping the name. One participant (individual 759, Ab42_TX about 15365, CAA severity 0) is an extreme value that moves the CAA severity vs Ab42 estimate from p = 0.24 to p = 0.006 when excluded, so both estimates are reported.
+
+DiCAD has repeat records per person. The diabetes_cat table has 323 rows for 199 people, the amyloid PET file 317 scans for 200 people, and the laboratory file 354 rows for 200 people. Collapse to one row per person before modelling, or p-values come out too small. diabetes_cat does not change across a person's rows.
+
+DiCAD diabetes_cat lives in the raw DiCAD_metabolomics CSV (skip = 1, Windows-1252 encoding), not in the M2OVE workbook. Its levels are NGT, Pre-diabetes, Treated diabetes and Untreated diabetes. Only the two treated and untreated categories are coded as diabetic, so the comparison group is NGT plus pre-diabetes.
+
+DiCAD statin flags built by searching medication strings for "STATIN" also match nystatin (an antifungal). Exclude it. 34 of the 199 people have no medication record and are coded as not on a statin.
+
+Emory_Vascular hxbp has stray "." missing codes (2 people). apoeGenotype is empty for every person in the emory_demographics sheet, so APOE can't be used as a covariate, and samplingAge is missing for 39 of 196 people.
 
 AMP-AD protein IDs are a mix of SYMBOL|UniProt and bare UniProt accessions. The bare ones get dropped before cross-cohort comparison since they're unannotated, not missing.
 
@@ -95,4 +110,4 @@ The data available in the AD Knowledge Portal would not be possible without the 
 
 Citation for the manuscript to be added on publication :)
 
-- Jaisal
+Jaisal

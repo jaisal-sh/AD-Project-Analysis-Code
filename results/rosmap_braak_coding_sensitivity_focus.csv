@@ -1,0 +1,6 @@
+sub_pathway,cont,ge3,ge4,ge5
+Hexosylceramides (HCER),0.06,-0.06,0.22,0.2
+Lysophospholipid,-0.05,-0.1,-0.05,-0.13
+Phosphatidylcholine (PC),-0.05,-0.15,-0.09,-0.05
+Phosphatidylethanolamine (PE),-0.09,-0.2,-0.19,-0.17
+Sphingomyelins,0.02,-0.02,0.09,0.07

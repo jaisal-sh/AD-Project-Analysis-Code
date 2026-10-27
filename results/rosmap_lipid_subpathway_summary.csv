@@ -1,0 +1,49 @@
+sub_pathway,n,n_sig,pct_down,med_beta
+Ketone Bodies,1,0,100,-0.26
+Phosphatidylglycerol (PG),3,1,100,-0.23
+Phosphatidylethanolamine (PE),12,3,92,-0.19
+"Fatty Acid, Branched",2,0,100,-0.18
+Medium Chain Fatty Acid,3,0,67,-0.18
+Long Chain Saturated Fatty Acid,7,0,100,-0.15
+Fatty Acid Metabolism,1,0,100,-0.09
+Long Chain Polyunsaturated Fatty Acid (n3 and n6),14,0,93,-0.09
+Mevalonate Metabolism,1,0,100,-0.09
+Phosphatidylcholine (PC),20,1,85,-0.09
+Long Chain Monounsaturated Fatty Acid,7,0,86,-0.08
+Dihydroceramides,2,0,100,-0.07
+Dihydrosphingomyelins,5,1,80,-0.06
+"Fatty Acid, Amino",1,0,100,-0.06
+Lysophospholipid,24,0,71,-0.05
+Carnitine Metabolism,2,0,50,-0.03
+Ceramides,9,0,67,-0.03
+Endocannabinoid,10,0,70,-0.03
+"Fatty Acid Metabolism (Acyl Carnitine, Medium Chain)",3,0,67,-0.02
+"Fatty Acid, Monohydroxy",12,0,58,-0.02
+Monoacylglycerol,5,0,80,-0.02
+Phosphatidylinositol (PI),6,0,50,-0.01
+Phospholipid Metabolism,10,2,40,0.01
+"Fatty Acid, Dicarboxylate",7,0,29,0.02
+Fatty Acid Synthesis,2,0,50,0.03
+Glycerolipid Metabolism,3,0,0,0.04
+"Fatty Acid Metabolism (Acyl Carnitine, Short Chain)",1,0,0,0.06
+Fatty Acid Metabolism (also BCAA Metabolism),3,0,0,0.06
+Corticosteroids,1,0,0,0.07
+Sphingolipid Synthesis,3,0,33,0.08
+Sphingomyelins,22,0,27,0.09
+"Fatty Acid Metabolism (Acyl Carnitine, Long Chain Saturated)",7,0,0,0.1
+"Fatty Acid Metabolism (Acyl Carnitine, Monounsaturated)",7,0,0,0.1
+Sphingosines,2,0,0,0.1
+Diacylglycerol,5,0,20,0.11
+"Fatty Acid Metabolism (Acyl Carnitine, Polyunsaturated)",6,0,0,0.11
+Lysoplasmalogen,4,0,25,0.11
+Phosphatidylserine (PS),4,0,0,0.11
+"Fatty Acid Metabolism (Acyl Carnitine, Hydroxy)",4,0,25,0.12
+Glycosphingolipid Sulfates,1,0,0,0.12
+Lactosylceramides (LCER),3,0,33,0.12
+Eicosanoid,4,0,0,0.13
+Primary Bile Acid Metabolism,1,0,0,0.14
+"Fatty Acid, Dihydroxy",3,1,0,0.15
+Inositol Metabolism,3,1,33,0.15
+Plasmalogen,9,1,33,0.18
+Sterol,4,0,0,0.2
+Hexosylceramides (HCER),12,1,0,0.22

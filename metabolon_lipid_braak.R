@@ -2,7 +2,7 @@
 # my goal: do lipid features carry stronger Braak associations than other metabolites in ROSMAP?
 # result: class level is null, sub-pathways move in opposite directions (exploratory, post hoc)
 # tissue: brain (file name ROSMAP_Metabolon_HD4_Brain514, all 512 clean IDs are in the raw file)
-# region not confirmed from the study documentation, so no region is named in legends
+# region: DLPFC per the AD Knowledge Portal 18.7 release notes (514 donors)
 
 suppressPackageStartupMessages({
   library(tidyverse)

@@ -13,6 +13,14 @@ suppressPackageStartupMessages({
 })
 set.seed(1)
 
+#Gridlines removal
+theme_minimal <- function(...) {
+  ggplot2::theme_minimal(...) +
+    theme(panel.grid = element_blank(),
+          axis.line  = element_line(colour = "black"),
+          axis.ticks = element_line(colour = "black"))
+}
+
 # ---- CONFIG ----
 proj <- "C:/Users/jayvs/Desktop/ad_vascular_multiomics"
 setwd(proj)

@@ -9,7 +9,13 @@ suppressPackageStartupMessages({
   library(patchwork)
 })
 set.seed(1)
-
+#Gridlines removal
+theme_minimal <- function(...) {
+  ggplot2::theme_minimal(...) +
+    theme(panel.grid = element_blank(),
+          axis.line  = element_line(colour = "black"),
+          axis.ticks = element_line(colour = "black"))
+}
 # ---- CONFIG ----
 setwd("C:/Users/jayvs/Desktop/ROSMAP Multi-Omics")
 metab_file <- "processed/metabolomics/ROSMAP_metabolon_HD4_clean.csv"

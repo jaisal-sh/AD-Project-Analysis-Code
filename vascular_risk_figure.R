@@ -12,10 +12,18 @@ suppressPackageStartupMessages({
 })
 set.seed(1)
 
+# no gridlines
+theme_minimal <- function(...) {
+  ggplot2::theme_minimal(...) +
+    theme(panel.grid = element_blank(),
+          axis.line  = element_line(colour = "black"),
+          axis.ticks = element_line(colour = "black"))
+}
+
 # ---- CONFIG ----
 proj <- "C:/Users/jayvs/Desktop/ad_vascular_multiomics"
 setwd(proj)
-wb        <- "processed/M2OVE.xlsx"
+wb <- "processed/M2OVE.xlsx"
 dicad_dir <- "downloads/dicad"
 mccaa_dir <- "downloads/mc-caa"
 out_fig <- "figures"
@@ -26,8 +34,8 @@ cat("working in:", getwd(), "\n")
 
 # ---- helpers ----
 z <- function(x) as.numeric(scale(x))
-as_num  <- function(x) suppressWarnings(as.numeric(as.character(x)))                  # "." and junk become NA
-age_num <- function(x) suppressWarnings(as.numeric(gsub("[^0-9.]", "", as.character(x))))   # "90+" becomes 90
+as_num <- function(x) suppressWarnings(as.numeric(as.character(x)))                 # "." and junk become NA
+age_num <- function(x) suppressWarnings(as.numeric(gsub("[^0-9.]", "", as.character(x))))  # "90+" becomes 90
 e4_flag <- function(g) { g <- as.character(g); ifelse(is.na(g) | g %in% c("", "."), NA_integer_, as.integer(grepl("4", g))) }
 
 # standardised effect: outcome z-scored, exposure in its own units
@@ -38,7 +46,7 @@ fit_effect <- function(d, y, x, covars = character(0), study, exposure, outcome,
   ok <- if (length(covars) == 0) logical(0) else
     sapply(covars, function(v) mean(!is.na(d[[v]])) >= 0.5 && length(unique(na.omit(d[[v]]))) > 1)
   dropped <- covars[!ok]
-  covars  <- covars[ok]
+  covars <- covars[ok]
   if (length(dropped) > 0) cat("  ", study, "|", model, "|", subset, "- dropped covariates:", paste(dropped, collapse = ", "), "\n")
   dd <- d[complete.cases(d[, c(y, x, covars)]), ]
   dd$yz <- z(dd[[y]])
@@ -50,6 +58,7 @@ fit_effect <- function(d, y, x, covars = character(0), study, exposure, outcome,
          n = nrow(dd), estimate = unname(s["Estimate"]),
          conf.low = unname(ci[1]), conf.high = unname(ci[2]), p = unname(s["Pr(>|t|)"]))
 }
+
 # raw-unit effect (mg/dL for lipids)
 fit_raw <- function(d, y, x, covars = character(0), model) {
   d <- as.data.frame(d)
@@ -172,7 +181,6 @@ mc_p <- mc %>% group_by(individualID) %>%
   inner_join(mc_dem, by = "individualID") %>% filter(!is.na(ab42), !is.na(caa))
 stopifnot(!any(duplicated(mc_p$individualID)))
 mc_p$ab42_log2 <- log2(mc_p$ab42 + 1)
-
 out_row <- mc_p[which.max(mc_p$ab42), ]
 cat("largest Ab42:", out_row$ab42, "| individual:", out_row$individualID, "| CAA:", out_row$caa,
     "(my notes say individual 759, 15365, CAA 0, so check this matches)\n")
@@ -193,13 +201,14 @@ forest_df <- bind_rows(
   fit_effect(mc_x, "ab42", "caa", c("age", "sex", "e4"), "MC-CAA", "CAA severity", "Ab42", "Adjusted", "excluding largest value")
 ) %>% mutate(row = paste0(exposure, " and ", outcome, "\n(", study,
                           ifelse(subset == "all participants", "", paste0(", ", subset)), ")"))
+
 # outlier-robust check: log2 Ab42, all participants
 robust <- bind_rows(
   fit_effect(mc_p, "ab42_log2", "caa", character(0), "MC-CAA", "CAA severity", "log2 Ab42", "Unadjusted"),
   fit_effect(mc_p, "ab42_log2", "caa", c("age", "sex", "e4"), "MC-CAA", "CAA severity", "log2 Ab42", "Adjusted"))
+
 print(forest_df %>% select(study, subset, model, n, estimate, conf.low, conf.high, p), n = Inf)
 print(robust %>% select(study, outcome, model, n, estimate, conf.low, conf.high, p))
-
 sp <- cor.test(mc_p$caa, mc_p$ab42, method = "spearman", exact = FALSE)
 cat("MC-CAA Spearman, all participants: rho =", round(unname(sp$estimate), 3), "p =", signif(sp$p.value, 3), "\n")
 write_csv(tibble(test = "Spearman, CAA severity vs Ab42, all participants", n = nrow(mc_p),
@@ -211,6 +220,7 @@ write_csv(tibble(test = "Spearman, CAA severity vs Ab42, all participants", n = 
 # ============================================================================
 forest_df <- forest_df %>% mutate(row = factor(row, levels = rev(unique(row))),
                                   model = factor(model, levels = c("Unadjusted", "Adjusted")))
+
 pA <- ggplot(forest_df, aes(estimate, row, colour = model)) +
   geom_vline(xintercept = 0, linetype = "dashed", colour = "grey50") +
   geom_errorbar(aes(xmin = conf.low, xmax = conf.high), orientation = "y", width = 0.25,
@@ -218,9 +228,11 @@ pA <- ggplot(forest_df, aes(estimate, row, colour = model)) +
   geom_point(size = 2.6, position = position_dodge(width = 0.6)) +
   scale_colour_manual(values = c("Unadjusted" = "#4C72B0", "Adjusted" = "#DD8452"), name = NULL) +
   labs(x = "standardised effect (SD of outcome per unit of exposure, 95% CI)", y = NULL) +
-  theme_minimal(base_size = 11) + theme(legend.position = "bottom")
+  theme_minimal(base_size = 11) + theme(legend.position = "bottom", 
+                                        axis.text.y = element_text(size = 8, lineheight = 0.9))
 
-two_box <- function(d, grp, y, labs2, ylab, cols) {
+# xlab is new: the x axis title for the two-group boxplots (B and C)
+two_box <- function(d, grp, y, labs2, ylab, cols, xlab = NULL) {
   d <- d %>% mutate(g = factor(.data[[grp]], levels = c(0, 1), labels = labs2)) %>% filter(!is.na(g), !is.na(.data[[y]]))
   nn <- d %>% count(g) %>% mutate(l = paste0(g, "\n(n = ", n, ")"))
   ggplot(d, aes(g, .data[[y]], fill = g)) +
@@ -228,10 +240,12 @@ two_box <- function(d, grp, y, labs2, ylab, cols) {
     geom_jitter(width = 0.1, size = 0.9, alpha = 0.5, colour = "grey20") +
     scale_fill_manual(values = cols, guide = "none") +
     scale_x_discrete(labels = setNames(nn$l, as.character(nn$g))) +
-    labs(x = NULL, y = ylab) + theme_minimal(base_size = 11)
+    labs(x = xlab, y = ylab) + theme_minimal(base_size = 11)
 }
-pB <- two_box(dicad_amy, "diabetic", "suvr", c("NGT or pre-diabetes", "Diabetes"), "amyloid PET SUVR (DiCAD)", c("#A8CBE8", "#4C72B0"))
-pC <- two_box(emory, "htn", "hip", c("No hypertension", "Hypertension"), "hippocampal volume (Emory_Vascular)", c("#F4A582", "#D6604D"))
+pB <- two_box(dicad_amy, "diabetic", "suvr", c("NGT or pre-diabetes", "Diabetes"), "amyloid PET SUVR (DiCAD)",
+              c("#A8CBE8", "#4C72B0"), xlab = "diabetes status")
+pC <- two_box(emory, "htn", "hip", c("No hypertension", "Hypertension"), "hippocampal volume (Emory_Vascular)",
+              c("#F4A582", "#D6604D"), xlab = "hypertension status")
 
 pD <- ggplot(mc_p, aes(caa, ab42)) +
   geom_point(size = 1, alpha = 0.5, colour = "#4DB6AC") +
@@ -259,16 +273,18 @@ pE <- ggplot(lip_long, aes(grp, value, fill = lipid_type)) +
   geom_text(data = ann, aes(x = 1.5, y = Inf, label = label), vjust = 1.4, size = 3, inherit.aes = FALSE) +
   scale_fill_manual(values = c("HDL" = "#1baf7a", "LDL" = "#e34948"), guide = "none") +
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.25))) +
-  labs(x = NULL, y = "mg/dL (DiCAD)") + theme_minimal(base_size = 11)
+  labs(x = "diabetes status", y = "mg/dL (DiCAD)") + theme_minimal(base_size = 11)
 
-fig_vasc <- pA / (pB | pC | pD) / pE + plot_layout(heights = c(1.1, 1, 1)) + plot_annotation(tag_levels = "A")
+# free(pA) so the long forest labels stop setting the left edge for every row below it
+# needs patchwork >= 1.2.0, check with packageVersion("patchwork")
+fig_vasc <- free(pA) / (pB | pC | pD) / pE + plot_layout(heights = c(1.1, 1, 1)) + plot_annotation(tag_levels = "A")
 print(fig_vasc)
 
 # ---- save ----
 ggsave(file.path(out_fig, "vascular_risk_main.png"), fig_vasc, width = 12, height = 14, dpi = 300)
 ggsave(file.path(out_fig, "vascular_risk_main.pdf"), fig_vasc, width = 12, height = 14)
 write_csv(forest_df %>% select(-row), file.path(out_res, "vascular_risk_effects.csv"))
-write_csv(robust,     file.path(out_res, "vascular_mccaa_log2_sensitivity.csv"))
+write_csv(robust, file.path(out_res, "vascular_mccaa_log2_sensitivity.csv"))
 write_csv(lip_models, file.path(out_res, "vascular_dicad_hdl_ldl_models.csv"))
 writeLines(capture.output(sessionInfo()), file.path(out_res, "sessionInfo_vascular_risk.txt"))
 cat("done, files written to", file.path(getwd(), c(out_fig, out_res)), "\n")

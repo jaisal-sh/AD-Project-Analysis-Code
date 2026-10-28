@@ -28,13 +28,18 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
-# ---- EDIT THESE PATHS FOR YOUR ENVIRONMENT --------------------------------
-base_msbb   <- "PATH/TO/MSBB multi-omics/"
-base_ampad  <- "PATH/TO/AMP-AD multi-omics/"
-base_rosmap <- "PATH/TO/ROSMAP dataset/"
-out_dir     <- "PATH/TO/outputs/"
-# ----------------------------------------------------------------------------
+# removing gridlines
+theme_minimal <- function(...) {
+  ggplot2::theme_minimal(...) +
+    theme(panel.grid = element_blank(),
+          axis.line  = element_line(colour = "black"),
+          axis.ticks = element_line(colour = "black"))
+}
 
+base_msbb   <- "C:/Users/jayvs/Desktop/MSBB multi-omics/"
+base_ampad  <- "C:/Users/jayvs/Desktop/AMP-AD multi-omics/"
+base_rosmap <- "C:/Users/jayvs/Desktop/ROSMAP dataset/"
+out_dir     <- "C:/Users/jayvs/Desktop/fig4_check/"
 
 ## ============================================================================
 ## 0. HELPER FUNCTIONS (used across all three cohorts)
